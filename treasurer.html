@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Treasurer Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 10px;
+  }
+  .topbar .role-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--brass);
+  }
+  .topbar .sacco-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--jade); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px;
+  }
+
+  .content { padding: 6px 18px 18px; flex: 1; }
+
+  /* KPI strip */
+  .kpi-row { display: flex; gap: 10px; margin: 10px 0 18px; }
+  .kpi-card {
+    flex: 1; background: var(--white); border-radius: 12px; padding: 12px 12px 10px;
+    box-shadow: 0 6px 16px -10px rgba(27,42,38,0.25);
+  }
+  .kpi-label { font-size: 11px; color: #8A8478; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .kpi-value { font-size: 17px; font-weight: 600; margin-top: 4px; }
+
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px;
+    margin: 20px 0 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title .count-badge {
+    background: var(--rust); color: var(--white); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px;
+  }
+
+  /* Approval request card */
+  .approval-item {
+    padding: 13px 0; border-bottom: 1px solid var(--paper-dark);
+  }
+  .approval-item:last-child { border-bottom: none; }
+  .approval-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .approval-name { font-weight: 600; font-size: 14.5px; }
+  .approval-meta { font-size: 12px; color: #8A8478; margin-top: 2px; }
+  .approval-amount { font-size: 15px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .approval-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .approval-actions button {
+    flex: 1; padding: 9px; border-radius: 9px; font-size: 13px; font-weight: 600;
+  }
+  .btn-approve { background: var(--jade); color: var(--white); }
+  .btn-reject { background: var(--white); color: var(--rust); border: 1.5px solid var(--rust); }
+  .btn-approve:active, .btn-reject:active { opacity: 0.8; }
+  .approval-item.done { opacity: 0.45; }
+  .approval-item.done .approval-actions { display: none; }
+
+  /* Defaulter row */
+  .defaulter-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0; border-bottom: 1px solid var(--paper-dark);
+  }
+  .defaulter-item:last-child { border-bottom: none; }
+  .defaulter-name { font-size: 14px; font-weight: 500; }
+  .defaulter-meta { font-size: 12px; color: var(--rust); margin-top: 2px; }
+  .defaulter-days {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+    color: var(--rust); background: rgba(179,69,43,0.08); border-radius: 999px; padding: 3px 10px;
+  }
+
+  /* Reconciliation row */
+  .recon-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0; border-bottom: 1px solid var(--paper-dark);
+  }
+  .recon-item:last-child { border-bottom: none; }
+  .recon-desc { font-size: 13.5px; font-weight: 500; }
+  .recon-meta { font-size: 11.5px; color: #8A8478; margin-top: 2px; }
+  .recon-flag {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+    background: rgba(179,69,43,0.1); color: var(--rust);
+  }
+
+  .tab svg { fill: none; stroke: currentColor; stroke-width: 1.8; width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="topbar">
+    <div>
+      <div class="role-tag">Treasurer</div>
+      <div class="sacco-name" id="saccoName">Nakawa Farmers SACCO</div>
+    </div>
+    <div class="avatar" id="avatarInitial">M</div>
+  </div>
+
+  <div class="content">
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Today's collections</div>
+        <div class="kpi-value mono">380,000</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Loan portfolio</div>
+        <div class="kpi-value mono">18.4M</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Overdue</div>
+        <div class="kpi-value mono" style="color: var(--rust);">3</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      Pending approvals
+      <span class="count-badge" id="pendingCount">3</span>
+    </div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+
+      <div class="approval-item" id="app-1">
+        <div class="approval-top">
+          <div>
+            <div class="approval-name">Nakato Sarah</div>
+            <div class="approval-meta">Regular savings · Cash entered at meeting · 4 Jul</div>
+          </div>
+          <div class="approval-amount">+50,000</div>
+        </div>
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="decide('app-1', true)">Approve</button>
+          <button class="btn-reject" onclick="decide('app-1', false)">Reject</button>
+        </div>
+      </div>
+
+      <div class="approval-item" id="app-2">
+        <div class="approval-top">
+          <div>
+            <div class="approval-name">Okello James</div>
+            <div class="approval-meta">Withdrawal request · Requires dual approval &gt; 500,000</div>
+          </div>
+          <div class="approval-amount">-650,000</div>
+        </div>
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="decide('app-2', true)">Approve</button>
+          <button class="btn-reject" onclick="decide('app-2', false)">Reject</button>
+        </div>
+      </div>
+
+      <div class="approval-item" id="app-3">
+        <div class="approval-top">
+          <div>
+            <div class="approval-name">Kirabo Peace</div>
+            <div class="approval-meta">Loan disbursement · Approved by committee, awaiting payout</div>
+          </div>
+          <div class="approval-amount">-1,200,000</div>
+        </div>
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="decide('app-3', true)">Disburse</button>
+          <button class="btn-reject" onclick="decide('app-3', false)">Hold</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">Loan defaulters</div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="defaulter-item">
+        <div>
+          <div class="defaulter-name">Ssebunya Moses</div>
+          <div class="defaulter-meta">Business loan · UGX 95,000 overdue</div>
+        </div>
+        <div class="defaulter-days">12 days</div>
+      </div>
+      <div class="defaulter-item">
+        <div>
+          <div class="defaulter-name">Namutebi Grace</div>
+          <div class="defaulter-meta">Emergency loan · UGX 40,000 overdue</div>
+        </div>
+        <div class="defaulter-days">5 days</div>
+      </div>
+      <div class="defaulter-item">
+        <div>
+          <div class="defaulter-name">Byaruhanga Tom</div>
+          <div class="defaulter-meta">Business loan · UGX 120,000 overdue</div>
+        </div>
+        <div class="defaulter-days">21 days</div>
+      </div>
+    </div>
+
+    <div class="section-title">MoMo reconciliation</div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="recon-item">
+        <div>
+          <div class="recon-desc">MTN MoMo statement vs ledger</div>
+          <div class="recon-meta">24 Jul · Txn ref MP240724.1932</div>
+        </div>
+        <span class="recon-flag">Mismatch</span>
+      </div>
+      <div class="recon-item">
+        <div>
+          <div class="recon-desc">Airtel Money statement vs ledger</div>
+          <div class="recon-meta">23 Jul · All 14 transactions matched</div>
+        </div>
+        <span class="stamp"><span class="dot"></span>Matched</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5M6 10v9h12v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-9-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Approvals
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16" stroke-linecap="round"/></svg>
+      Loans
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-5M12 15V6M17 15v-9" stroke-linecap="round"/></svg>
+      Reports
+    </button>
+  </div>
+</div>
+
+<script>
+  fetch('config.json')
+    .then(r => r.json())
+    .then(cfg => {
+      document.getElementById('saccoName').textContent = cfg.saccoName;
+      document.title = cfg.shortName + ' — Treasurer';
+      document.documentElement.style.setProperty('--jade', cfg.colors.jade);
+      document.documentElement.style.setProperty('--jade-deep', cfg.colors.jadeDeep);
+      document.documentElement.style.setProperty('--brass', cfg.colors.brass);
+    })
+    .catch(() => {});
+
+  let pendingTotal = 3;
+
+  function decide(id, approved) {
+    // ---- BACKEND HOOK ----
+    // fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({
+    //   action: approved ? 'approveTransaction' : 'rejectTransaction',
+    //   transactionId: id,
+    //   approvedBy: treasurerUserId
+    // })})
+    // Apps Script writes the maker-checker decision to Ledger_Entries
+    // (or reverses it), updates status, and triggers the member's
+    // SMS/WhatsApp receipt notification.
+
+    const el = document.getElementById(id);
+    el.classList.add('done');
+    pendingTotal--;
+    document.getElementById('pendingCount').textContent = pendingTotal;
+
+    if (approved) {
+      const amountEl = el.querySelector('.approval-amount');
+      amountEl.insertAdjacentHTML('afterend', '');
+    }
+  }
+</script>
+</body>
+</html>
