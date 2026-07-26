@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Member Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 10px;
+  }
+  .topbar .greeting { font-size: 13px; color: #8A8478; }
+  .topbar .sacco-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--brass); color: var(--jade-deep);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px;
+  }
+
+  .content { padding: 6px 18px 18px; flex: 1; }
+
+  .balance-card { margin-bottom: 16px; }
+  .balance-label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #8A8478; }
+  .balance-amount {
+    font-size: 34px;
+    font-weight: 600;
+    margin: 4px 0 2px;
+    letter-spacing: -0.01em;
+  }
+  .balance-sub { font-size: 12.5px; color: #6C6656; }
+
+  .action-row { display: flex; gap: 10px; margin: 16px 0; }
+  .action-row .btn-primary, .action-row .btn-secondary { padding: 14px; font-size: 15px; }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+    margin: 22px 0 10px;
+  }
+
+  .loan-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .loan-info .loan-name { font-weight: 600; font-size: 14.5px; }
+  .loan-info .loan-progress { font-size: 12.5px; color: #6C6656; margin-top: 3px; }
+  .loan-amount { text-align: right; }
+  .loan-amount .due { font-size: 12px; color: #8A8478; }
+  .loan-amount .val { font-size: 15px; font-weight: 600; }
+
+  .progress-track {
+    width: 100%; height: 6px; border-radius: 999px;
+    background: var(--paper-dark); margin-top: 8px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--jade); border-radius: 999px; }
+
+  .txn-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--paper-dark);
+  }
+  .txn-item:last-child { border-bottom: none; }
+  .txn-desc { font-size: 14px; font-weight: 500; }
+  .txn-date { font-size: 12px; color: #8A8478; margin-top: 2px; }
+  .txn-amount { font-size: 14.5px; font-weight: 600; }
+  .txn-amount.pos { color: var(--jade-deep); }
+  .txn-amount.neg { color: var(--rust); }
+  .txn-right { text-align: right; }
+
+  /* Modal for Save/Repay */
+  .sheet-backdrop {
+    position: fixed; inset: 0; background: rgba(18,58,49,0.45);
+    display: none; align-items: flex-end; justify-content: center; z-index: 10;
+  }
+  .sheet-backdrop.open { display: flex; }
+  .sheet {
+    background: var(--white); width: 100%; max-width: 480px;
+    border-radius: 20px 20px 0 0; padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  }
+  .sheet h3 { font-family: 'Fraunces', serif; margin: 0 0 4px; font-size: 19px; }
+  .sheet p.sub { font-size: 13px; color: #8A8478; margin: 0 0 16px; }
+  .provider-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .provider-btn {
+    flex: 1; padding: 12px; border-radius: 12px; border: 1.5px solid var(--paper-dark);
+    background: var(--white); font-weight: 600; font-size: 14px; text-align: center;
+  }
+  .provider-btn.selected { border-color: var(--jade); background: rgba(31,111,92,0.08); color: var(--jade-deep); }
+  .sheet-close { text-align: center; margin-top: 10px; }
+  .sheet-close button { background: none; color: #8A8478; font-weight: 600; font-size: 14px; }
+
+  .tab svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="topbar">
+    <div>
+      <div class="greeting">Good morning,</div>
+      <div class="sacco-name" id="memberName">Nakato Sarah</div>
+    </div>
+    <div class="avatar" id="avatarInitial">N</div>
+  </div>
+
+  <div class="content">
+
+    <div class="ledger-card balance-card">
+      <div class="balance-label">Total savings</div>
+      <div class="balance-amount mono" id="balanceAmount">UGX 1,240,000</div>
+      <div class="balance-sub">Share capital + Regular savings · <span class="stamp"><span class="dot"></span>Verified</span></div>
+
+      <div class="action-row">
+        <button class="btn-primary" onclick="openSheet('save')">Save now</button>
+        <button class="btn-secondary" onclick="openSheet('repay')">Repay loan</button>
+      </div>
+    </div>
+
+    <div class="section-title">Active loan</div>
+    <div class="ledger-card loan-card">
+      <div class="loan-info">
+        <div class="loan-name">Business loan</div>
+        <div class="loan-progress">7 of 12 payments made</div>
+        <div class="progress-track"><div class="progress-fill" style="width: 58%;"></div></div>
+      </div>
+      <div class="loan-amount">
+        <div class="due">Next due 2 Aug</div>
+        <div class="val mono">UGX 95,000</div>
+      </div>
+    </div>
+
+    <div class="section-title">Recent activity</div>
+    <div class="ledger-card" style="padding-top: 8px; padding-bottom: 4px;">
+      <div class="txn-item">
+        <div>
+          <div class="txn-desc">Loan repayment</div>
+          <div class="txn-date">24 Jul · MTN MoMo</div>
+        </div>
+        <div class="txn-right">
+          <div class="txn-amount neg">- 95,000</div>
+          <span class="stamp" style="margin-top:4px;"><span class="dot"></span>Verified</span>
+        </div>
+      </div>
+      <div class="txn-item">
+        <div>
+          <div class="txn-desc">Regular savings deposit</div>
+          <div class="txn-date">18 Jul · Airtel Money</div>
+        </div>
+        <div class="txn-right">
+          <div class="txn-amount pos">+ 150,000</div>
+          <span class="stamp" style="margin-top:4px;"><span class="dot"></span>Verified</span>
+        </div>
+      </div>
+      <div class="txn-item">
+        <div>
+          <div class="txn-desc">Deposit at meeting</div>
+          <div class="txn-date">4 Jul · Cash, entered by Treasurer</div>
+        </div>
+        <div class="txn-right">
+          <div class="txn-amount pos">+ 50,000</div>
+          <span class="stamp pending" style="margin-top:4px;"><span class="dot"></span>Pending</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5M6 10v9h12v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M12 3v18M6 8h9a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Savings
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16" stroke-linecap="round"/></svg>
+      Loans
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" stroke-linecap="round"/></svg>
+      Profile
+    </button>
+  </div>
+</div>
+
+<!-- Save / Repay bottom sheet -->
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet">
+    <h3 id="sheetTitle">Save via Mobile Money</h3>
+    <p class="sub" id="sheetSub">Choose your provider and enter an amount. You'll get a prompt on your phone to approve.</p>
+
+    <div class="provider-row">
+      <div class="provider-btn selected" id="mtnBtn" onclick="selectProvider('mtn')">MTN MoMo</div>
+      <div class="provider-btn" id="airtelBtn" onclick="selectProvider('airtel')">Airtel Money</div>
+    </div>
+
+    <div class="field-label" style="margin-bottom:6px;">Amount (UGX)</div>
+    <input type="number" id="amountInput" placeholder="e.g. 50000" inputmode="numeric" style="margin-bottom: 14px;">
+
+    <button class="btn-primary" onclick="submitMomo()" id="sheetSubmitBtn">Send request</button>
+    <div class="sheet-close"><button onclick="closeSheet()">Cancel</button></div>
+  </div>
+</div>
+
+<script>
+  let selectedProvider = 'mtn';
+  let currentAction = 'save';
+
+  fetch('config.json')
+    .then(r => r.json())
+    .then(cfg => {
+      document.title = cfg.shortName + ' — Dashboard';
+      document.documentElement.style.setProperty('--jade', cfg.colors.jade);
+      document.documentElement.style.setProperty('--jade-deep', cfg.colors.jadeDeep);
+      document.documentElement.style.setProperty('--brass', cfg.colors.brass);
+    })
+    .catch(() => {});
+
+  function openSheet(action) {
+    currentAction = action;
+    document.getElementById('sheetTitle').textContent =
+      action === 'save' ? 'Save via Mobile Money' : 'Repay loan via Mobile Money';
+    document.getElementById('sheetSub').textContent =
+      action === 'save'
+        ? "Choose your provider and enter an amount. You'll get a prompt on your phone to approve."
+        : 'Next payment due is UGX 95,000. You can pay that or a different amount.';
+    document.getElementById('sheetBackdrop').classList.add('open');
+  }
+  function closeSheet() {
+    document.getElementById('sheetBackdrop').classList.remove('open');
+    document.getElementById('amountInput').value = '';
+  }
+  function selectProvider(p) {
+    selectedProvider = p;
+    document.getElementById('mtnBtn').classList.toggle('selected', p === 'mtn');
+    document.getElementById('airtelBtn').classList.toggle('selected', p === 'airtel');
+  }
+
+  function submitMomo() {
+    const amount = document.getElementById('amountInput').value;
+    if (!amount || Number(amount) <= 0) {
+      alert('Enter a valid amount.');
+      return;
+    }
+
+    // ---- BACKEND HOOK ----
+    // fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({
+    //   action: currentAction === 'save' ? 'momoCollectionRequest' : 'momoRepaymentRequest',
+    //   provider: selectedProvider,
+    //   amount: amount,
+    //   phone: memberPhone
+    // })})
+    // Apps Script calls the MTN/Airtel Collection API, logs a "Pending" row
+    // in MoMo_Log, then the provider's webhook (a separate Apps Script
+    // doGet/doPost endpoint) flips it to "Success"/"Failed" and writes the
+    // matching ledger_entries row + triggers the SMS/WhatsApp receipt.
+
+    closeSheet();
+    alert('Request sent to your ' + (selectedProvider === 'mtn' ? 'MTN MoMo' : 'Airtel Money') +
+      ' number. Approve it on your phone to complete the ' +
+      (currentAction === 'save' ? 'deposit' : 'repayment') + '.');
+  }
+
+  // Read member phone from URL (passed from login) for demo continuity
+  const params = new URLSearchParams(window.location.search);
+  const memberPhone = params.get('phone') || '';
+</script>
+</body>
+</html>

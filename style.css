@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+  --ink: #1B2A26;
+  --jade: #1F6F5C;
+  --jade-deep: #123A31;
+  --brass: #C9A227;
+  --rust: #B3452B;
+  --paper: #F1EDE0;
+  --paper-dark: #E7E1CE;
+  --white: #FFFDF8;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.display {
+  font-family: 'Fraunces', serif;
+  font-optical-sizing: auto;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+a { color: inherit; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+/* ---- App shell ---- */
+.screen {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Ledger card: the signature element ----
+   Ruled horizontal lines like a real passbook page,
+   with a stitched/brass edge on the left. */
+.ledger-card {
+  position: relative;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 22px 20px 22px 26px;
+  box-shadow: 0 1px 0 rgba(27,42,38,0.04), 0 8px 24px -12px rgba(27,42,38,0.25);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 27px,
+    rgba(27,42,38,0.07) 28px
+  );
+}
+
+.ledger-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--jade) 0 8px,
+    var(--brass) 8px 12px
+  );
+}
+
+/* ---- Brass verified stamp ---- */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--jade-deep);
+  border: 1.5px solid var(--brass);
+  border-radius: 999px;
+  padding: 3px 10px 3px 8px;
+  transform: rotate(-3deg);
+  background: rgba(201,162,39,0.08);
+}
+
+.stamp .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+
+.stamp.pending {
+  color: var(--rust);
+  border-color: var(--rust);
+  background: rgba(179,69,43,0.08);
+}
+.stamp.pending .dot { background: var(--brass); }
+
+/* ---- Buttons ---- */
+.btn-primary {
+  background: var(--jade);
+  color: var(--white);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  width: 100%;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+.btn-primary:active { transform: scale(0.98); background: var(--jade-deep); }
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--jade-deep);
+  border: 1.5px solid var(--paper-dark);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  width: 100%;
+}
+.btn-secondary:active { background: var(--paper-dark); }
+
+input {
+  font-family: inherit;
+  font-size: 16px;
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--paper-dark);
+  background: var(--white);
+  color: var(--ink);
+}
+input:focus {
+  outline: none;
+  border-color: var(--jade);
+  box-shadow: 0 0 0 3px rgba(31,111,92,0.15);
+}
+input::placeholder { color: #9A9284; }
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  background: var(--white);
+  border-top: 1px solid var(--paper-dark);
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8A8478;
+  background: none;
+}
+.tab.active { color: var(--jade); }
+.tab svg { width: 22px; height: 22px; }
+
+/* Accessibility: visible focus ring for keyboard users */
+button:focus-visible, input:focus-visible, a:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

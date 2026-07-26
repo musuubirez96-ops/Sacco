@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>SACCO Login</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero-wrap { padding: 36px 20px 12px; display: flex; justify-content: center; }
+
+  /* The passbook cover — the concrete object this software replaces */
+  .passbook {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 5 / 6.2;
+    border-radius: 10px;
+    background: linear-gradient(160deg, var(--jade) 0%, var(--jade-deep) 100%);
+    background-image:
+      repeating-linear-gradient(100deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 7px),
+      linear-gradient(160deg, var(--jade) 0%, var(--jade-deep) 100%);
+    box-shadow: 0 24px 40px -18px rgba(18,58,49,0.55), 0 2px 0 rgba(255,255,255,0.08) inset;
+    transform: rotate(-2.5deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    position: relative;
+  }
+  .passbook::after {
+    content: "";
+    position: absolute;
+    left: 14px; top: 14px; right: 14px; bottom: 14px;
+    border: 1px solid rgba(201,162,39,0.55);
+    border-radius: 6px;
+  }
+  .passbook .badge {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: var(--brass);
+    color: var(--jade-deep);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 26px;
+    margin-bottom: 14px;
+  }
+  .passbook .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 21px;
+    color: var(--white);
+    line-height: 1.25;
+  }
+  .passbook .line {
+    width: 40px; height: 2px;
+    background: var(--brass);
+    margin: 12px 0;
+  }
+  .passbook .tag {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.03em;
+  }
+
+  .content { padding: 8px 22px 24px; flex: 1; display: flex; flex-direction: column; }
+  .step { display: none; flex-direction: column; gap: 12px; }
+  .step.active { display: flex; }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6C6656;
+    margin-bottom: 2px;
+  }
+  .helper { font-size: 13px; color: #8A8478; margin-top: 4px; }
+  .helper.error { color: var(--rust); }
+
+  .otp-row { display: flex; gap: 8px; }
+  .otp-row input {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    padding: 14px 0;
+  }
+
+  .footer-links {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #8A8478;
+  }
+  .footer-links button {
+    background: none; color: var(--jade); font-weight: 600; padding: 0;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="hero-wrap">
+    <div class="passbook">
+      <div class="badge" id="logoInitial">N</div>
+      <div class="name" id="saccoName">Nakawa Farmers SACCO</div>
+      <div class="line"></div>
+      <div class="tag" id="tagline">Save together. Grow together.</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Step 1: phone number -->
+    <div class="step active" id="step-phone">
+      <div>
+        <div class="field-label">Your phone number</div>
+        <input type="tel" id="phoneInput" placeholder="0700 000 000" autocomplete="tel" inputmode="tel">
+        <div class="helper">We'll send a 4-digit code by SMS to confirm it's you.</div>
+      </div>
+      <button class="btn-primary" onclick="sendCode()">Send code</button>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div class="step" id="step-otp">
+      <div>
+        <div class="field-label">Enter the 4-digit code</div>
+        <div class="otp-row">
+          <input maxlength="1" inputmode="numeric" class="otp-digit">
+          <input maxlength="1" inputmode="numeric" class="otp-digit">
+          <input maxlength="1" inputmode="numeric" class="otp-digit">
+          <input maxlength="1" inputmode="numeric" class="otp-digit">
+        </div>
+        <div class="helper" id="otpHelper">Code sent to <span id="phoneDisplay"></span>. Demo code: 1234</div>
+      </div>
+      <button class="btn-primary" onclick="verifyCode()">Verify &amp; continue</button>
+      <button class="btn-secondary" onclick="backToPhone()">Change number</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Load branding from config.json, same pattern as EduCore
+  fetch('config.json')
+    .then(r => r.json())
+    .then(cfg => {
+      document.getElementById('saccoName').textContent = cfg.saccoName;
+      document.getElementById('tagline').textContent = cfg.tagline;
+      document.getElementById('logoInitial').textContent = cfg.logoInitial;
+      document.title = cfg.shortName + ' — Login';
+      document.documentElement.style.setProperty('--jade', cfg.colors.jade);
+      document.documentElement.style.setProperty('--jade-deep', cfg.colors.jadeDeep);
+      document.documentElement.style.setProperty('--brass', cfg.colors.brass);
+    })
+    .catch(() => { /* fall back to defaults already in the HTML */ });
+
+  let enteredPhone = '';
+
+  function sendCode() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    if (phone.length < 9) {
+      alert('Please enter a valid phone number.');
+      return;
+    }
+    enteredPhone = phone;
+
+    // ---- BACKEND HOOK ----
+    // Replace with your Apps Script Web App endpoint, e.g.:
+    // fetch(APPS_SCRIPT_URL + '?action=sendOtp&phone=' + encodeURIComponent(phone))
+    // Apps Script should generate a code, store it against the phone in a
+    // "OTP_Log" sheet with an expiry timestamp, then call the Africa's
+    // Talking SMS API to deliver it.
+
+    document.getElementById('phoneDisplay').textContent = phone;
+    document.getElementById('step-phone').classList.remove('active');
+    document.getElementById('step-otp').classList.add('active');
+    document.querySelectorAll('.otp-digit')[0].focus();
+  }
+
+  function backToPhone() {
+    document.getElementById('step-otp').classList.remove('active');
+    document.getElementById('step-phone').classList.add('active');
+  }
+
+  function verifyCode() {
+    const digits = Array.from(document.querySelectorAll('.otp-digit')).map(i => i.value).join('');
+
+    // ---- BACKEND HOOK ----
+    // Replace this demo check with:
+    // fetch(APPS_SCRIPT_URL + '?action=verifyOtp&phone=' + enteredPhone + '&code=' + digits)
+    // On success the Apps Script returns a session token to store and send
+    // with subsequent API calls (as a header or query param).
+
+    if (digits === '1234') {
+      window.location.href = 'member.html?phone=' + encodeURIComponent(enteredPhone);
+    } else {
+      document.getElementById('otpHelper').textContent = 'Incorrect code. Try 1234 for this demo.';
+      document.getElementById('otpHelper').classList.add('error');
+    }
+  }
+
+  // auto-advance between OTP boxes
+  document.querySelectorAll('.otp-digit').forEach((input, idx, arr) => {
+    input.addEventListener('input', () => {
+      if (input.value && idx < arr.length - 1) arr[idx + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) arr[idx - 1].focus();
+    });
+  });
+</script>
+</body>
+</html>
