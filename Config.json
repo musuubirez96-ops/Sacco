@@ -1,0 +1,24 @@
+{
+  "saccoName": "Nakawa Farmers SACCO",
+  "shortName": "Nakawa SACCO",
+  "tagline": "Save together. Grow together.",
+  "logoInitial": "N",
+  "colors": {
+    "ink": "#1B2A26",
+    "jade": "#1F6F5C",
+    "jadeDeep": "#123A31",
+    "brass": "#C9A227",
+    "rust": "#B3452B",
+    "paper": "#F1EDE0",
+    "paperDark": "#E7E1CE"
+  },
+  "contact": {
+    "phone": "+256 700 000 000",
+    "office": "Nakawa Market, Kampala"
+  },
+  "momo": {
+    "mtnEnabled": true,
+    "airtelEnabled": true
+  },
+  "currency": "UGX"
+}
