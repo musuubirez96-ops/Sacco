@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Auditor Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px; }
+  .topbar .role-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--brass); }
+  .topbar .sacco-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--ink); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px;
+  }
+
+  .readonly-banner {
+    margin: 4px 18px 6px;
+    background: rgba(27,42,38,0.06);
+    border: 1px dashed var(--paper-dark);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12px;
+    color: #6C6656;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .readonly-banner svg { width: 16px; height: 16px; flex-shrink: 0; stroke: #6C6656; fill: none; stroke-width: 1.8; }
+
+  .content { padding: 6px 18px 18px; flex: 1; }
+
+  .kpi-row { display: flex; gap: 10px; margin: 10px 0 18px; }
+  .kpi-card { flex: 1; background: var(--white); border-radius: 12px; padding: 12px 12px 10px; box-shadow: 0 6px 16px -10px rgba(27,42,38,0.25); }
+  .kpi-label { font-size: 11px; color: #8A8478; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .kpi-value { font-size: 17px; font-weight: 600; margin-top: 4px; }
+
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px;
+    margin: 20px 0 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .count-badge {
+    background: var(--rust); color: var(--white); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px;
+  }
+
+  .exception-item { padding: 12px 0; border-bottom: 1px solid var(--paper-dark); }
+  .exception-item:last-child { border-bottom: none; }
+  .exc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .exc-title { font-weight: 600; font-size: 14px; }
+  .exc-meta { font-size: 12px; color: #8A8478; margin-top: 3px; }
+  .exc-flag {
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+    background: rgba(179,69,43,0.1); color: var(--rust);
+  }
+
+  .log-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--paper-dark); }
+  .log-item:last-child { border-bottom: none; }
+  .log-desc { font-size: 13.5px; }
+  .log-desc b { font-weight: 600; }
+  .log-meta { font-size: 11.5px; color: #8A8478; margin-top: 2px; }
+  .log-time { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8A8478; white-space: nowrap; }
+
+  .export-row { display: flex; gap: 10px; margin-top: 4px; }
+  .export-row button { flex: 1; }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+  .filter-chip {
+    padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--paper-dark);
+    font-size: 12.5px; font-weight: 600; color: #6C6656; white-space: nowrap; flex-shrink: 0;
+  }
+  .filter-chip.selected { border-color: var(--jade); background: rgba(31,111,92,0.08); color: var(--jade-deep); }
+
+  .tab svg { fill: none; stroke: currentColor; stroke-width: 1.8; width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="topbar">
+    <div>
+      <div class="role-tag">Auditor</div>
+      <div class="sacco-name" id="saccoName">Nakawa Farmers SACCO</div>
+    </div>
+    <div class="avatar" id="avatarInitial">R</div>
+  </div>
+
+  <div class="readonly-banner">
+    <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    Read-only access — you can view every record but cannot approve, edit, or reverse anything.
+  </div>
+
+  <div class="content">
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Total ledger entries</div>
+        <div class="kpi-value mono">4,812</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Flagged exceptions</div>
+        <div class="kpi-value mono" style="color: var(--rust);">2</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Last backup</div>
+        <div class="kpi-value mono">03:00</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      Exceptions to review
+      <span class="count-badge" id="excCount">2</span>
+    </div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="exception-item">
+        <div class="exc-top">
+          <div>
+            <div class="exc-title">MTN MoMo statement mismatch</div>
+            <div class="exc-meta">Ref MP240724.1932 · Ledger shows 95,000, MoMo statement shows 90,000</div>
+          </div>
+          <span class="exc-flag">Reconciliation</span>
+        </div>
+      </div>
+      <div class="exception-item">
+        <div class="exc-top">
+          <div>
+            <div class="exc-title">Withdrawal approved outside dual sign-off</div>
+            <div class="exc-meta">Okello James · UGX 650,000 · single approval logged, second signature missing</div>
+          </div>
+          <span class="exc-flag">Policy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Ledger &amp; activity log</div>
+    <div class="filter-row">
+      <div class="filter-chip selected" onclick="filterLog(this)">All</div>
+      <div class="filter-chip" onclick="filterLog(this)">Deposits</div>
+      <div class="filter-chip" onclick="filterLog(this)">Withdrawals</div>
+      <div class="filter-chip" onclick="filterLog(this)">Loans</div>
+      <div class="filter-chip" onclick="filterLog(this)">Logins</div>
+    </div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="log-item">
+        <div>
+          <div class="log-desc"><b>Nakato Sarah</b> deposited UGX 150,000</div>
+          <div class="log-meta">Airtel Money · verified by system</div>
+        </div>
+        <div class="log-time">18 Jul<br>09:42</div>
+      </div>
+      <div class="log-item">
+        <div>
+          <div class="log-desc"><b>Treasurer</b> approved Okello James withdrawal</div>
+          <div class="log-meta">UGX 650,000 · single sign-off only</div>
+        </div>
+        <div class="log-time">22 Jul<br>14:10</div>
+      </div>
+      <div class="log-item">
+        <div>
+          <div class="log-desc"><b>Chairperson</b> logged in</div>
+          <div class="log-meta">Device: Android · IP 41.210.x.x</div>
+        </div>
+        <div class="log-time">24 Jul<br>08:03</div>
+      </div>
+      <div class="log-item">
+        <div>
+          <div class="log-desc"><b>Kirabo Peace</b> loan disbursed</div>
+          <div class="log-meta">UGX 1,200,000 · MTN MoMo B2C</div>
+        </div>
+        <div class="log-time">24 Jul<br>11:27</div>
+      </div>
+      <div class="log-item">
+        <div>
+          <div class="log-desc"><b>Secretary</b> sent broadcast to 214 members</div>
+          <div class="log-meta">SMS + WhatsApp · AGM reminder</div>
+        </div>
+        <div class="log-time">25 Jul<br>16:45</div>
+      </div>
+    </div>
+
+    <div class="section-title">Export</div>
+    <div class="ledger-card">
+      <p style="font-size: 13px; color: #6C6656; margin: 0 0 12px;">Download the full audit trail for offline review or regulatory reporting.</p>
+      <div class="export-row">
+        <button class="btn-secondary" onclick="exportReport('pdf')">Export PDF</button>
+        <button class="btn-secondary" onclick="exportReport('excel')">Export Excel</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5M6 10v9h12v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-5M12 15V6M17 15v-9" stroke-linecap="round"/></svg>
+      Reports
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      Exceptions
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" stroke-linecap="round"/></svg>
+      Profile
+    </button>
+  </div>
+</div>
+
+<script>
+  fetch('config.json')
+    .then(r => r.json())
+    .then(cfg => {
+      document.getElementById('saccoName').textContent = cfg.saccoName;
+      document.title = cfg.shortName + ' — Auditor';
+      document.documentElement.style.setProperty('--jade', cfg.colors.jade);
+      document.documentElement.style.setProperty('--jade-deep', cfg.colors.jadeDeep);
+      document.documentElement.style.setProperty('--brass', cfg.colors.brass);
+    })
+    .catch(() => {});
+
+  function filterLog(el) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    // ---- BACKEND HOOK ----
+    // fetch(APPS_SCRIPT_URL + '?action=getAuditLog&type=' + el.textContent)
+    // Apps Script queries Ledger_Entries / Audit_Logs sheet filtered by
+    // type and returns rows read-only — no write endpoints are exposed
+    // to the Auditor role at all, enforced server-side, not just hidden
+    // in the UI.
+  }
+
+  function exportReport(format) {
+    // ---- BACKEND HOOK ----
+    // fetch(APPS_SCRIPT_URL + '?action=exportAuditReport&format=' + format)
+    // Apps Script generates a PDF/Excel snapshot of the full ledger and
+    // returns a download link (or emails it directly to the Auditor).
+    alert('Generating ' + format.toUpperCase() + ' export of the full audit trail...');
+  }
+</script>
+</body>
+</html>
