@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Chairperson Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px; }
+  .topbar .role-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--brass); }
+  .topbar .sacco-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--jade-deep); color: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px;
+  }
+
+  .content { padding: 6px 18px 18px; flex: 1; }
+
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 6px; }
+  .kpi-card { background: var(--white); border-radius: 12px; padding: 14px; box-shadow: 0 6px 16px -10px rgba(27,42,38,0.25); }
+  .kpi-label { font-size: 11px; color: #8A8478; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .kpi-value { font-size: 19px; font-weight: 600; margin-top: 5px; }
+  .kpi-trend { font-size: 11.5px; margin-top: 3px; font-weight: 600; }
+  .kpi-trend.up { color: var(--jade-deep); }
+  .kpi-trend.down { color: var(--rust); }
+
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px;
+    margin: 20px 0 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .count-badge {
+    background: var(--rust); color: var(--white); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 600; border-radius: 999px; padding: 1px 9px;
+  }
+
+  .sign-item { padding: 13px 0; border-bottom: 1px solid var(--paper-dark); }
+  .sign-item:last-child { border-bottom: none; }
+  .sign-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .sign-name { font-weight: 600; font-size: 14.5px; }
+  .sign-meta { font-size: 12px; color: #8A8478; margin-top: 2px; }
+  .sign-amount { font-size: 15px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+  .sign-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .sign-actions button { flex: 1; padding: 9px; border-radius: 9px; font-size: 13px; font-weight: 600; }
+  .btn-sign { background: var(--jade); color: var(--white); }
+  .btn-decline { background: var(--white); color: var(--rust); border: 1.5px solid var(--rust); }
+  .sign-item.done { opacity: 0.45; }
+  .sign-item.done .sign-actions { display: none; }
+
+  .resolution-item { padding: 13px 0; border-bottom: 1px solid var(--paper-dark); }
+  .resolution-item:last-child { border-bottom: none; }
+  .res-title { font-weight: 600; font-size: 14.5px; }
+  .res-meta { font-size: 12px; color: #8A8478; margin-top: 2px; }
+  .res-bar-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .res-bar-track { flex: 1; height: 8px; border-radius: 999px; background: var(--paper-dark); overflow: hidden; }
+  .res-bar-fill { height: 100%; background: var(--jade); }
+  .res-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; width: 34px; text-align: right; }
+
+  .meeting-card {
+    display: flex; gap: 12px; align-items: center;
+  }
+  .meeting-date {
+    width: 48px; text-align: center; background: var(--jade-deep); color: var(--white);
+    border-radius: 10px; padding: 8px 0; flex-shrink: 0;
+  }
+  .meeting-date .day { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 700; line-height: 1; }
+  .meeting-date .mon { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .meeting-title { font-weight: 600; font-size: 14.5px; }
+  .meeting-meta { font-size: 12px; color: #8A8478; margin-top: 2px; }
+
+  .tab svg { fill: none; stroke: currentColor; stroke-width: 1.8; width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="topbar">
+    <div>
+      <div class="role-tag">Chairperson</div>
+      <div class="sacco-name" id="saccoName">Nakawa Farmers SACCO</div>
+    </div>
+    <div class="avatar" id="avatarInitial">L</div>
+  </div>
+
+  <div class="content">
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total savings</div>
+        <div class="kpi-value mono">92.6M</div>
+        <div class="kpi-trend up">▲ 4.2% this month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Loan portfolio</div>
+        <div class="kpi-value mono">61.3M</div>
+        <div class="kpi-trend up">▲ 1.8% this month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Portfolio at risk</div>
+        <div class="kpi-value mono">6.4%</div>
+        <div class="kpi-trend down">▲ 0.6pt vs last month</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active members</div>
+        <div class="kpi-value mono">214</div>
+        <div class="kpi-trend up">▲ 9 new this month</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      Awaiting your sign-off
+      <span class="count-badge" id="signCount">2</span>
+    </div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="sign-item" id="sign-1">
+        <div class="sign-top">
+          <div>
+            <div class="sign-name">Okello James — withdrawal</div>
+            <div class="sign-meta">Above UGX 500,000 · Treasurer already approved</div>
+          </div>
+          <div class="sign-amount">-650,000</div>
+        </div>
+        <div class="sign-actions">
+          <button class="btn-sign" onclick="decide('sign-1')">Co-sign</button>
+          <button class="btn-decline" onclick="decide('sign-1')">Decline</button>
+        </div>
+      </div>
+      <div class="sign-item" id="sign-2">
+        <div class="sign-top">
+          <div>
+            <div class="sign-name">2026 annual budget</div>
+            <div class="sign-meta">Requires Chairperson approval before AGM vote</div>
+          </div>
+          <div class="sign-amount">—</div>
+        </div>
+        <div class="sign-actions">
+          <button class="btn-sign" onclick="decide('sign-2')">Approve</button>
+          <button class="btn-decline" onclick="decide('sign-2')">Send back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Active resolutions</div>
+    <div class="ledger-card" style="padding-top:4px; padding-bottom:2px;">
+      <div class="resolution-item">
+        <div class="res-title">Approve 2026 budget</div>
+        <div class="res-meta">Closes in 2 days · 142 of 214 members voted</div>
+        <div class="res-bar-row">
+          <div class="res-bar-track"><div class="res-bar-fill" style="width: 66%;"></div></div>
+          <div class="res-pct">66%</div>
+        </div>
+      </div>
+      <div class="resolution-item">
+        <div class="res-title">Elect new Vice-Treasurer</div>
+        <div class="res-meta">Closes in 6 days · 58 of 214 members voted</div>
+        <div class="res-bar-row">
+          <div class="res-bar-track"><div class="res-bar-fill" style="width: 27%;"></div></div>
+          <div class="res-pct">27%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Upcoming meeting</div>
+    <div class="ledger-card meeting-card">
+      <div class="meeting-date"><div class="day">02</div><div class="mon">Aug</div></div>
+      <div>
+        <div class="meeting-title">Monthly general meeting</div>
+        <div class="meeting-meta">Nakawa Market Hall · Agenda: budget vote, defaulter review</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5M6 10v9h12v-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-9-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Approvals
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><path d="M4 19h16M7 15v-5M12 15V6M17 15v-9" stroke-linecap="round"/></svg>
+      Reports
+    </button>
+    <button class="tab" onclick="alert('Coming soon in this demo')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" stroke-linecap="round"/></svg>
+      Profile
+    </button>
+  </div>
+</div>
+
+<script>
+  fetch('config.json')
+    .then(r => r.json())
+    .then(cfg => {
+      document.getElementById('saccoName').textContent = cfg.saccoName;
+      document.title = cfg.shortName + ' — Chairperson';
+      document.documentElement.style.setProperty('--jade', cfg.colors.jade);
+      document.documentElement.style.setProperty('--jade-deep', cfg.colors.jadeDeep);
+      document.documentElement.style.setProperty('--brass', cfg.colors.brass);
+    })
+    .catch(() => {});
+
+  let signPending = 2;
+  function decide(id) {
+    // ---- BACKEND HOOK ----
+    // fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({
+    //   action: 'chairpersonSignOff', itemId: id, decision: '...'
+    // })})
+    // Writes the second maker-checker signature to the ledger/resolution
+    // record, and notifies the Treasurer + member of the final decision.
+    document.getElementById(id).classList.add('done');
+    signPending--;
+    document.getElementById('signCount').textContent = signPending;
+  }
+</script>
+</body>
+</html>
